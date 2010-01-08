@@ -12,7 +12,7 @@
     <name>DOS Trigger</name>
     <description>This plugin triggers a build with a DOS script.</description>
     <packaging>hpi</packaging>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <url>http://wiki.hudson-ci.org/display/HUDSON/DOS+Trigger</url>
     <developers>
       <developer>
@@ -36,10 +36,4 @@
             <url>http://maven.glassfish.org/content/groups/public/</url>
         </pluginRepository>
     </pluginRepositories>
-
-  <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/dos-trigger-1.0</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/dos-trigger-1.0</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/dos-trigger/tags/dos-trigger-1.0</url>
-  </scm>
 </project>
