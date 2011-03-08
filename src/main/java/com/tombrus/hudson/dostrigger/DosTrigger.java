@@ -6,9 +6,13 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.BuildableItem;
 import hudson.model.Cause;
 import hudson.model.Hudson;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.PasswordParameterValue;
+import hudson.model.Project;
+import hudson.model.StringParameterValue;
 import hudson.model.Item;
 import hudson.model.TaskListener;
 import hudson.model.TopLevelItem;
@@ -20,18 +24,21 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DosTrigger extends Trigger<BuildableItem> {
+public class DosTrigger extends Trigger<Project> {
     private static final Logger LOGGER    = Logger.getLogger(DosTrigger.class.getName());
 
     private        final String script;
     private static final String MARKER    = "#:#:#";
     private static final String CAUSE_VAR = "CAUSE";
     private static final String CRLF      = "\r\n";
+
+    private int nextBuildNum;
 
     @DataBoundConstructor
     public DosTrigger(String schedule, String script) throws ANTLRException {
@@ -49,17 +56,29 @@ public class DosTrigger extends Trigger<BuildableItem> {
         return spec;
     }
 
-    public void run() {
-        if (!Hudson.getInstance().isQuietingDown()) {
-            try {
-                String output = runScript();
-                String cause = output == null ? "" : getVar(CAUSE_VAR, output);
-                if (cause.length()>0) {
-                    job.scheduleBuild(0, new MyCause(cause));
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Problem while executing DosTrigger.run()", e);
+	/**
+     * 
+     */
+    private void triggerScript() {
+        try {
+            String output = runScript();
+            String cause = output == null ? "" : getVar(CAUSE_VAR, output);
+            if (cause.length()>0) {
+                job.scheduleBuild(0, new MyCause(cause));
             }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Problem while executing DosTrigger.run()", e);
+        }
+    }
+    
+
+    /**
+     * Plugin entry point is here.
+     */
+    public void run() {
+    	//added to check if project is disabled/buildable or not.
+        if (!Hudson.getInstance().isQuietingDown() && this.job.isBuildable()) {
+        	this.triggerScript();
         }
     }
 
@@ -85,6 +104,55 @@ public class DosTrigger extends Trigger<BuildableItem> {
             return item instanceof TopLevelItem;
         }
     }
+    
+    /**
+     * Builds up the environment variable map of build settings
+     * for the job which the trigger is examining.
+     */
+    public final EnvVars initCharacteristicEnvVars(EnvVars env) {
+//        env.put("JENKINS_SERVER_COOKIE",Util.getDigestOf("ServerID:"+Hudson.getInstance().getSecretKey()));
+//        env.put("HUDSON_SERVER_COOKIE",Util.getDigestOf("ServerID:"+Hudson.getInstance().getSecretKey())); // Legacy compatibility
+    	
+        this.nextBuildNum = this.job.getNextBuildNumber();
+    	//check if build is in progress... if so, increase next build number.
+    	if(this.job.isBuilding()) {
+    		this.nextBuildNum++;
+    	}
+        env.put("BUILD_NUMBER",String.valueOf(this.nextBuildNum));
+//        env.put("BUILD_ID",getId());
+//        env.put("BUILD_TAG","hudson-"+getParent().getName()+"-"+number);
+//        env.put("JOB_NAME",getParent().getFullName());
+        return env;
+    }
+    
+    
+    /**
+     * Builds the environment variables for the parameters used in building the project
+     * @param listener
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private EnvVars buildEnvironmentForScriptToRun(TaskListener listener) throws IOException, InterruptedException {
+    	EnvVars envVars = new EnvVars();
+
+    	ParametersDefinitionProperty p = (ParametersDefinitionProperty) this.job.getProperty(ParametersDefinitionProperty.class);
+    	List <ParameterDefinition> paramList = p.getParameterDefinitions();
+    	for (ParameterDefinition parameter : paramList ) {
+    		Object obj = parameter.getDefaultParameterValue();
+    		if (obj instanceof PasswordParameterValue) {
+    			PasswordParameterValue password = (PasswordParameterValue)obj;
+    			password.buildEnvVars(null, envVars);
+    		}else {
+    			StringParameterValue stringParam = (StringParameterValue) obj;
+    			stringParam.buildEnvVars(null, envVars);
+    		}
+        		
+        	this.initCharacteristicEnvVars(envVars); 
+        }
+        
+    	return envVars;
+    }
 
     private String runScript() throws InterruptedException {
         final TaskListener listener = new LogTaskListener(LOGGER, Level.INFO);
@@ -96,8 +164,15 @@ public class DosTrigger extends Trigger<BuildableItem> {
             try {
                 final Launcher launcher = Hudson.getInstance().createLauncher(listener);
                 final String[] cmd      = new String[]{"cmd", "/c", "call", batchFile.getRemote()};
-                final EnvVars  envVars  = new EnvVars(EnvVars.masterEnvVars);
-                launcher.launch().cmds(cmd).envs(envVars).stdout(logStream).pwd(ws).join();
+
+                final EnvVars envVars = this.buildEnvironmentForScriptToRun(listener);
+            	if (envVars.size()>0) {
+                    launcher.launch().cmds(cmd).envs(envVars).stdout(logStream).pwd(ws).join();
+            		
+            	}else {
+            		LOGGER.log(Level.WARNING, "EnvVars returned with nothing in it..");
+					assert(envVars.size()>0);
+            	}
                 return logStream.toString();
             } catch (IOException e) {
                 Util.displayIOException(e, listener);
