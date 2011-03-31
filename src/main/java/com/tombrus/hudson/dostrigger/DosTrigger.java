@@ -137,19 +137,21 @@ public class DosTrigger extends Trigger<Project> {
     	EnvVars envVars = new EnvVars();
 
     	ParametersDefinitionProperty p = (ParametersDefinitionProperty) this.job.getProperty(ParametersDefinitionProperty.class);
-    	List <ParameterDefinition> paramList = p.getParameterDefinitions();
-    	for (ParameterDefinition parameter : paramList ) {
-    		Object obj = parameter.getDefaultParameterValue();
-    		if (obj instanceof PasswordParameterValue) {
-    			PasswordParameterValue password = (PasswordParameterValue)obj;
-    			password.buildEnvVars(null, envVars);
-    		}else {
-    			StringParameterValue stringParam = (StringParameterValue) obj;
-    			stringParam.buildEnvVars(null, envVars);
-    		}
-        		
-        	this.initCharacteristicEnvVars(envVars); 
-        }
+    	if(p!=null) {
+	    	List <ParameterDefinition> paramList = p.getParameterDefinitions();
+	    	for (ParameterDefinition parameter : paramList ) {
+	    		Object obj = parameter.getDefaultParameterValue();
+	    		if (obj instanceof PasswordParameterValue) {
+	    			PasswordParameterValue password = (PasswordParameterValue)obj;
+	    			password.buildEnvVars(null, envVars);
+	    		}else {
+	    			StringParameterValue stringParam = (StringParameterValue) obj;
+	    			stringParam.buildEnvVars(null, envVars);
+	    		}
+	        }
+    	}
+		
+    	this.initCharacteristicEnvVars(envVars); 
         
     	return envVars;
     }
