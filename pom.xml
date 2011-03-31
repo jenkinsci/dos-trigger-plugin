@@ -10,30 +10,33 @@
     <groupId>com.tombrus.hudson.dostrigger</groupId>
     <artifactId>dos-trigger</artifactId>
     <name>DOS Trigger</name>
-    <description>This plugin triggers a build with a DOS script.</description>
+    <description>This plugin triggers a build with a DOS script, it allows for the use of build parameters and build_number as environment variables.</description>
     <packaging>hpi</packaging>
-    <version>1.2-SNAPSHOT</version>
-    <url>http://wiki.hudson-ci.org/display/HUDSON/DOS+Trigger</url>
+    <version>1.21-SNAPSHOT</version>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/DOS+Trigger</url>
     <developers>
+	  <developer>
+	    <id>pellet</id>
+		<name>Ben Pettit</name>
+		<email>benpettit@digimulti.com</email>
+	  </developer>
       <developer>
         <id>tombrus</id>
         <name>Tom Brus</name>
         <email>tombrus@gmail.com</email>
       </developer>
     </developers>
+	<scm>
+		<connection>scm:git:ssh://github.com/jenkinsci/dos-trigger-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/dos-trigger-plugin.git</developerConnection>
+		<url>https://github.com/jenkinsci/dos-trigger-plugin</url>
+	</scm>
 
-    <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
-    <repositories>
-        <repository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+    <!-- get every artifact through maven.jenkins-ci.org, which proxies all the artifacts that we need -->  
+	<distributionManagement>
+		<repository>
+			<id>maven.jenkins-ci.org</id>
+			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 </project>
