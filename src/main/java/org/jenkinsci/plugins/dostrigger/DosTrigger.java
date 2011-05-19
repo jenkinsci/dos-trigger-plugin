@@ -1,4 +1,4 @@
-package com.tombrus.hudson.dostrigger;
+package org.jenkinsci.plugins.dostrigger;
 
 import antlr.ANTLRException;
 import hudson.EnvVars;
@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DosTrigger extends Trigger<Project> {
-    private static final Logger LOGGER    = Logger.getLogger(DosTrigger.class.getName());
+    private transient static final Logger LOGGER    = Logger.getLogger(DosTrigger.class.getName());
 
     private        final String script;
     private static final String MARKER    = "#:#:#";

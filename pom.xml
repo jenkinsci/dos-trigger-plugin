@@ -4,10 +4,8 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>1.399</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.tombrus.hudson.dostrigger</groupId>
     <artifactId>dos-trigger</artifactId>
     <name>DOS Trigger</name>
     <description>This plugin triggers a build with a DOS script, it allows for the use of build parameters and build_number as environment variables.</description>
@@ -39,4 +37,22 @@
 			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
 		</repository>
 	</distributionManagement>
+	
+	<build>
+	  <plugins>
+	    <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-gpg-plugin</artifactId>
+	      <executions>
+	        <execution>
+	          <id>sign-artifacts</id>
+	          <phase>verify</phase>
+	          <goals>
+	            <goal>sign</goal>
+	          </goals>
+	        </execution>
+	      </executions>
+	    </plugin>
+	  </plugins>
+	</build>
 </project>
