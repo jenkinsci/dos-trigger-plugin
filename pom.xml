@@ -29,14 +29,6 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/dos-trigger-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/dos-trigger-plugin</url>
 	</scm>
-
-    <!-- get every artifact through maven.jenkins-ci.org, which proxies all the artifacts that we need -->  
-	<distributionManagement>
-		<repository>
-			<id>maven.jenkins-ci.org</id>
-			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-		</repository>
-	</distributionManagement>
 	
 	<build>
 	  <plugins>
